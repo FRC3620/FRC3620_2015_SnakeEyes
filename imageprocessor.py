@@ -31,17 +31,18 @@ def process_image( img, debugname, showwindows ):
     # this seems to screw up the input image
     contours, hierarchy = cv2.findContours(test,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	
-    #c = contours[0]
-    #print len(c)
-    #area = cv2.contourArea(c)
+    c = contours[0]
+    print len(c)
+    area = cv2.contourArea(c)
 
-    #moments = cv2.moments(c)
+    moments = cv2.moments(c)
 
-    #yc = moments['m01'] /moments ['m00']
-    #xc = moments['m10'] /moments ['m00']
+    yc = moments['m01'] /moments ['m00']
+    xc = moments['m10'] /moments ['m00']
 
-    #print "Area = ", area
-    #print "Center of Mass = (",xc, "," , yc,")"
+    print "Area = ", area
+    print "Center of Mass = (",xc, "," , yc,")"
+    
     if showwindows:
         #cv2.circle(img, (328,265),10,(0,255,0))
     	cv2.imshow('mask',mask)
