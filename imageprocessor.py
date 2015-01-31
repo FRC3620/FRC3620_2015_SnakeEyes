@@ -1,9 +1,7 @@
 import cv2
 import numpy as np
 
-print"some"
 def process_image( img, debugname, showwindows ):
-    print"start"
     # Convert BGR to HSV
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -22,20 +20,20 @@ def process_image( img, debugname, showwindows ):
     
     open =cv2.morphologyEx(mask,cv2.MORPH_OPEN,kernel5)
     
+    # we aren't sure which is better, doing a close or a dilation, so we try both
+    # so we can display them both later
     dilation = cv2.dilate(open,kernel5,iterations = 3)
-    
     close =cv2.morphologyEx(open,cv2.MORPH_CLOSE,kernel20)
 
-    # pick which image you want to do contours on (final, close, whatever)
+    # pick which image you want to do contours on (the dilation or the close)
     final = close
     
     # contours morphs source image so we need to use a copy of the image that we are using to get the countour from before using contours
     contour_image = final.copy()
-    
     contours, hierarchy = cv2.findContours(contour_image,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 	
     c = contours[0]
-    print len(c)
+    print "Contour length = %d" % (len(c))
     area = cv2.contourArea(c)
 
     moments = cv2.moments(c)
@@ -43,8 +41,8 @@ def process_image( img, debugname, showwindows ):
     yc = moments['m01'] /moments ['m00']
     xc = moments['m10'] /moments ['m00']
 
-    print "Area = ", area
-    print "Center of Mass = (",xc, "," , yc,")"
+    print "Area = %d" % (area)
+    print "Center of Mass = %d,%d" % (xc, yc)
     
     if showwindows:
         cv2.circle(img, (int(xc),int(yc)),10,(0,255,0))
@@ -53,10 +51,10 @@ def process_image( img, debugname, showwindows ):
     	cv2.imshow('open',open)
     	cv2.imshow('close',close)
     	cv2.imshow('dilation',dilation)
-    	final = cv2.cvtColor(final, cv2.COLOR_GRAY2BGR)
+        final = cv2.cvtColor(final, cv2.COLOR_GRAY2BGR)
         cv2.circle(final, (int(xc),int(yc)),10,(0,255,0))
-    	cv2.imshow('final',final)
+        cv2.drawContours (final, contours, -1, (255, 0, 0), 3)
+        cv2.imshow('final',final)
 
-    print "bye"
     return
   
