@@ -1,7 +1,9 @@
 import cv2
 import numpy as np
 
+
 def process_image( img, debugname, showwindows ):
+
     # Convert BGR to HSV
     hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
 
@@ -33,42 +35,69 @@ def process_image( img, debugname, showwindows ):
     contours, hierarchy = cv2.findContours (contour_image,cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
     
     if(len(contours) != 0):
-         c = contours[0]
-         #print "Contour length = %d" % (len(c))
-         area = cv2.contourArea(c)
-         hnum = len(hierarchy[0]-1)
-         moments = cv2.moments(c)
-
-         yc = moments['m01'] /moments ['m00']
-         xc = moments['m10'] /moments ['m00']
-
-         #print "Area = %d" % (area)
-         #print "Center of Mass = %d,%d" % (xc, yc)
-    
          #the thin side (the one with fedEx on it) 
          fedEx = 1.35744680851
          #the long side
          team = 2.06593406593
          #the diagonal
          corner = 1.83068783069
-    
+         
+         bestScore = -1
+         bestblob = -1
+         current = 0
          for i in range(0, len(contours)):
+             
              cnt = contours[i]
+             
+             c = contours[i]
+
+             
+             area = cv2.contourArea(c)
+             moments = cv2.moments(c)
+
+             yc = moments['m01'] /moments ['m00']
+             xc = moments['m10'] /moments ['m00']
+             if area < 11000:
+                 c = None
+                 continue
+             print i
+             print "Contour length = %d" % (len(c))
+             print "Area = %d" % (area)
+             print "Center of Mass = %d,%d" % (xc, yc)
+             
              x,y,w,h = cv2.boundingRect(cnt)
              ratio = float(w)/h
-             cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),i+2)
+             
              if ratio >= fedEx - .062 and ratio <= fedEx + .062:
                  print "fedEx, ",i
                  cv2.rectangle(img,(x,y),(x+w,y+h),(255,0,0),i+2)
+                 cv2.putText(img,str(i),(x,y+h),cv2.FONT_HERSHEY_SIMPLEX,.5, (0,0,0),2)
+                 current = 2*ratio + int(area/1000)
+                 
              elif ratio >= team - .2 and ratio <= team + .2:
                  print "team, ",i
                  cv2.rectangle(img,(x,y),(x+w,y+h),(0,255,0),i+2)
+                 
+                 cv2.putText(img,str(i),(x,y+h),cv2.FONT_HERSHEY_SIMPLEX,.5, (0,0,0),2)
+                 current = 2*ratio + int(area/1000)
              elif ratio >= corner - .9 and ratio <= corner + .9:
                  print "corner, ",i
-                 cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),i+2)
+                 cv2.rectangle(img,(x,y),(x+w,y+h),(0,0,255),i+2) 
+                 cv2.putText(img,str(i),(x,y+h),cv2.FONT_HERSHEY_SIMPLEX,.5, (0,0,0),2)     
+                 current = 1.5*ratio + int(area/1000)
              else:
                  cv2.rectangle(img,(x,y), (x+w,y+h),(255,255,255),9)
                  print ratio, " ", i
+                 cv2.putText(img,str(i),(x+w/2,y+h/2),cv2.FONT_HERSHEY_SIMPLEX,.5, (0,0,0),2)
+                 current = ratio + int(area/1000)
+
+             if current > bestScore:
+                 bestScore = current
+                 bestblob = i
+             print "blob ",i," is scored ",current
+             print "the best score is ", bestScore," on blob ", bestblob
+             
+
         
 
     
