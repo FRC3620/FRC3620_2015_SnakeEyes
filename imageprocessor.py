@@ -6,6 +6,8 @@ def process_image( img, debugname, showwindows ):
     bestScore = -1
     bestblob = -1
     current = 0
+    bestxc = 0
+    bestyc = 0
     seen = False
     x= None
     y= None
@@ -47,6 +49,7 @@ def process_image( img, debugname, showwindows ):
          team = 2.06593406593
          #the diagonal
          corner = 1.83068783069
+         
          
          
          for i in range(0, len(contours)-1):
@@ -124,5 +127,5 @@ def process_image( img, debugname, showwindows ):
     height, width, depth = img.shape
     if seen:
         return { 'ImageX': width, 'ImageY':height, 'X':bestxc, 'Y':bestyc , 'Seen':seen}
-    return {'Seen':false}
+    return {'Seen':False}
  
