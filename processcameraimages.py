@@ -1,43 +1,49 @@
+#!/usr/bin/python
 import cv2
 import imageprocessor
 import socket
 import json
     
-UDP_IP = "127.0.0.1"
-UDP_PORT = 5005
+UDP_IP = "roborio-3620.local"
+UDP_PORT = 3620
 
-sock = socket.socket(socket.AF_INET, # Internet
-                        socket.SOCK_DGRAM) # UDP
+sock = None
+
+try:
+    sock = socket.socket(socket.AF_INET, # Internet
+                         socket.SOCK_DGRAM) # UDP
+except Exception as foo:
+    print type(foo)
+    print "Huh, had trouble making the socket"
 
 cap = cv2.VideoCapture(0)
+cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 320)
+cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 240)
+#cap.set(cv2.cv.CV_CAP_PROP_FPS, 2)
 
 while(1):
 
     # Take each frame
     _, frame = cap.read()
+    
+    #cv2.imshow('frame',frame)
+    
     #get information aboot the image
-    output=imageprocessor.process_image (frame, 'dummy', 1)
-   
+    output=imageprocessor.process_image (frame, 'dummy', 0)
+    
     #convert to JSON
     jsontote = json.dumps(output)
     print jsontote
     
-    #send to network
-    sock.sendto(jsontote, (UDP_IP, UDP_PORT))
+    if sock is not None:
+        #send to network
+        try:
+            sock.sendto(jsontote, (UDP_IP, UDP_PORT))
+        except Exception as foo:
+    	    print type(foo)
+	    print "Huh, had trouble making the socket"
     
-    k = cv2.waitKey(5) & 0xFF
+    #k = cv2.waitKey(5) & 0xFF
 
 #clean up
 cv2.destroyAllWindows() 
-
-UDP_IP = "127.0.0.1"
-UDP_PORT = 5005
-    
-print "UDP target IP:", UDP_IP
-print "UDP target port:", UDP_PORT
-print "message:", MESSAGE
-print output
-print jsontote
-  
-
-

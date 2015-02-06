@@ -1,0 +1,6 @@
+We got our instructions on how to get things rnuning at startup from
+www.stuffaboutcode.com/2012/06/raspberry-pi-run-program-at-start-up.html.
+
+We made our startup script in this folder, and we symlinked it into /etc/init.d/vision
+
+We still have work to do to daemonize the code.

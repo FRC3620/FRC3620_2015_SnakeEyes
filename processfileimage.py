@@ -14,7 +14,7 @@ im = cv2.imread('acquire_14.jpg')
 #im = cv2.imread('3620s.jpg')
 #im = cv2.imread('corner.jpg')
 
-# get imfotmation about the image
+# get imformation about the image
 output=imageprocessor.process_image( im, 'dummy', 1 )
 print output
 
