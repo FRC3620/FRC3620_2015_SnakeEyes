@@ -3,23 +3,49 @@
 import cv2
 import imageprocessor
 import numpy as np
-import Tkinter
 import argparse
 import json
 import time
-#initialHSV={'vLo': 100, 'hLo': 20, 'sLo': 100, 'vHi': 255, 'sHi': 255, 'hHi': 50}
-#hsvd = initialHSV
-currentHSV={}
+import logging
+import sys
+
 parser = argparse.ArgumentParser()
 parser.add_argument("file")
 args = parser.parse_args()
 
-print "Processing file %s", args.file
+###############################################################################
+# set up logging
+LOG_LEVEL = logging.DEBUG
+LOG_FORMAT = '%(levelname)-8s %(message)s'
 
+# Give the logger a unique name (good practice)
+logger = logging.getLogger(__name__)
+# Set the log level to LOG_LEVEL
+logger.setLevel(LOG_LEVEL)
+
+logging.basicConfig(stream=sys.stderr,level=LOG_LEVEL,format=LOG_FORMAT)
+
+###############################################################################
+# read file
+#
+
+logger.info ("Processing file %s", args.file)
 im = cv2.imread(args.file)
+
+currentHSV={}
+
+
+###############################################################################
+# a 'do nothing' onChange handler
+#
 
 def nothing(x):
     pass
+
+###############################################################################
+# the onChange handler for the 'save' slider
+#
+
 def writeFile(s):
     if s == 1:
         print 'Saving...'
@@ -30,6 +56,10 @@ def writeFile(s):
         print "...Done"
     cv2.setTrackbarPos('Save','image',0)
     
+###############################################################################
+# the onChange handler for the 'reset' slider
+#
+
 def reset(r):
     if r==1:
         cv2.setTrackbarPos('hLo','image',initialHSV.get('hLo'))
@@ -40,8 +70,12 @@ def reset(r):
         cv2.setTrackbarPos('vHi','image',initialHSV.get('vHi'))
         writeFile(1)
     cv2.setTrackbarPos('Reset and Save','image',0)
+
+###############################################################################
+# the onChange handler for the settings sliders
+#
+
 def process(o):
-    print o
 
     # get current positions of six trackbars
     hLo = cv2.getTrackbarPos('hLo','image')
@@ -52,26 +86,27 @@ def process(o):
     vHi = cv2.getTrackbarPos('vHi','image')
     global currentHSV
     currentHSV = {'hLo': hLo, 'hHi': hHi, 'sLo': sLo, 'sHi': sHi, 'vLo': vLo, 'vHi': vHi}
-    print currentHSV
     
     # get imformation about the image
     output, images = imageprocessor.process_image( im, currentHSV, markup=1 )
-    print output
+    logger.info("output = %s", output)
     cv2.imshow('image',im)
 
     for n, img in images.iteritems():
 	cv2.imshow(n, img)
 
+###############################################################################
+# read processing here
 
 # Create a black image, a window
 cv2.namedWindow('image')
 
+# get the settings
 start = open('videoSettings.json','r')
 sread = start.read()
 initialHSV=json.loads(sread)
 currentHSV= initialHSV.copy()
 start.close()
-
 
 # create trackbars for color change
 cv2.createTrackbar('hLo','image',initialHSV.get('hLo'),255,process)
@@ -83,8 +118,8 @@ cv2.createTrackbar('vHi','image',initialHSV.get('vHi'),255,process)
 cv2.createTrackbar('Save','image',0,1,writeFile)
 cv2.createTrackbar('Reset and Save','image',0,1,reset)
 
+# process 
 process(0)
-
 
 while(1):
 
@@ -93,4 +128,3 @@ while(1):
         break
 
 cv2.destroyAllWindows()
-
