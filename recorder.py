@@ -99,13 +99,32 @@ fourcc = cv2.cv.CV_FOURCC(*'XVID')
 ##############################################################################
 try:
     while(cap.isOpened()):
-
+        msg = None
+        data = None
         #Reading Data
-        try:
-            data, addr = sock.recvfrom(1024) # buffer size is 1024
-            data= json.loads(data)
-            stringToPrint = "{time} match, {tim} sec,\n team {team}, {volt} volts".format(time=data['time'],tim=data['timeinmatch'],team=data['position'],volt=data['voltage'])
-            tFromLast = time.time()
+        while True:
+            try:
+                msg, addr = sock.recvfrom(512) # buffer size is 1024
+                tFromLast = time.time()
+                if args.log:
+                   logger.info(msg)
+            except socket.error, e:
+                err = e.args[0]
+                if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
+                    if time.time()-tFromLast > 10:
+                        stringToPrint="Been a long time sense home called..."
+                        msg = None
+                        if filename is not None:
+                            logger.info(stringToPrint)
+                        filename = None
+                else:
+                    logger.info(e)
+                break
+        
+        if msg is not None:
+            data= json.loads(msg)
+            stringToPrintTime = "{time} match, {tim} sec,".format(tim= int(time.time()-start),time=data['timeinmatch'])
+            stringToPrint2 ="team {team}, {volt:.1f} volts, {mode}".format(team=data['position'],volt=(data['voltage']), mode = data['robotmode'])
             try:
                 filename = data['filename']
             except KeyError:
@@ -114,17 +133,6 @@ try:
                 pt2 = (int(30*data['joystickx']+280),int(30*data['joysticky']+210))
             except KeyError:
                 pt2 = (280,210)
-        except socket.error, e:
-            err = e.args[0]
-            if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
-                if time.time()-tFromLast > 10:
-                    stringToPrint="Been a long time sense home called..."
-                    if filename is not None:
-                        logger.info(stringToPrint)
-                    filename = None
-            else:
-                logger.info(e)
-        
            
         #Changing files 
         #DEBUG logger.info("filename {}, oldfile {}, out {}".format(filename,oldfile,out))
@@ -152,10 +160,10 @@ try:
                 img2 = frame
                 h,w,d = img2.shape
                 img1[y_offset:y_offset+h, x_offset:x_offset+w] = img2
-                cv2.putText(img1,stringToPrint,(3,245),2,.35,(255,255,255))
-                cv2.putText(img1,str(int(time.time()-start)),(0,12),2,.5,(0,0,0))
+                cv2.putText(img1,stringToPrintTime,(3,246),2,.35,(255,255,255))
+                cv2.putText(img1,stringToPrint2,(3,258),2,.35,(255,255,255))
                 cv2.rectangle(img1,(250,240),(310,180),(0,0,0))
-                cv2.line(img1,(280,210),pt2,(0,0,0))
+                cv2.line(img1,(280,210),pt2,(255,255,0))
                 if args.screen:
                     cv2.imshow('res', img1)
                 out.write(img1)
