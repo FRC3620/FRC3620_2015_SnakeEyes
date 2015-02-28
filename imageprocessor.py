@@ -36,13 +36,6 @@ def process_image( img, hsvDict , markup=0 ):
     kernel20 = np.ones((20,20),np.uint8)
     
     open = cv2.morphologyEx(mask,cv2.MORPH_OPEN,kernel5)
-    
-    # we aren't sure which is better, doing a close or a dilation, so we try both
-    # so we can display them both later
-
-    # we aren't using this one
-    # dilation = cv2.dilate(open,kernel5,iterations = 3)
-
     close = cv2.morphologyEx(open,cv2.MORPH_CLOSE,kernel20)
 
     # pick which image you want to do contours on (the dilation or the close)
@@ -138,5 +131,5 @@ def process_image( img, hsvDict , markup=0 ):
         r = { 'imageWidth': width, 'imageHeight':height, 'x':bestxc, 'y':bestyc , 'seen':seen, 'dataType':"visionData", 'nContours':len(contours)}
     else:
         r = {'seen':False, 'dataType':"visionData", 'nContours':len(contours)}
-
+    
     return (r, images)

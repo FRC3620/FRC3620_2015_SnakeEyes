@@ -102,7 +102,8 @@ cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 240)
 ###############################################################################
 # process frame from camera
 #
-
+lastJSON = None
+newLog = True
 while(1):
 
     # Take each frame
@@ -126,7 +127,12 @@ while(1):
     	    print type(foo)
 	    print "Huh, had trouble making the socket"
     
+    #for n, img in images.iteritems():
+	#cv2.imshow(n, img)
+    #if cv2.waitKey(1) & 0xFF == ord('q'):
+        #break
     #k = cv2.waitKey(5) & 0xFF
 
 #clean up
 #cv2.destroyAllWindows() 
+cap.release()

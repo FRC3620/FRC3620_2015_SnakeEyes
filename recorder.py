@@ -29,10 +29,10 @@ out = None
 # Define and parse command line arguments
 parser = argparse.ArgumentParser(description="My simple Python service")
 parser.add_argument("-l", "--log", help="file to write log to")
-parser.add_argument("-s", "--screen", help="see screen")
+parser.add_argument("-s", "--screen", help="see screen", action = 'store_true')
 
 args = parser.parse_args()
-
+print args.screen
 ###############################################################################
 # set up the logging
 #
@@ -123,7 +123,7 @@ try:
         
         if msg is not None:
             data= json.loads(msg)
-            stringToPrintTime = "{time} match, {tim} sec,".format(tim= int(time.time()-start),time=data['timeinmatch'])
+            stringToPrintTime = "{time:.1f} match, {tim} sec,".format(tim= int(time.time()-start),time=data['timeinmatch'])
             stringToPrint2 ="team {team}, {volt:.1f} volts, {mode}".format(team=data['position'],volt=(data['voltage']), mode = data['robotmode'])
             try:
                 filename = data['filename']
