@@ -35,7 +35,7 @@ while True:
     if sock is not None:
         try:
             sock.sendto(data,(UDP_IP, UDP_PORT))
-            print timeinmatch
+            print data
             t.sleep(.05)
         except Exception as foo:
     	    print type(foo)

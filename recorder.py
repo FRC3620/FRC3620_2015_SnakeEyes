@@ -34,6 +34,7 @@ bgHeight = imgHeight + margin
 bgWidth = imgWidth
 
 
+
 ###############################################################################
 # parse the command line
 #
@@ -43,6 +44,7 @@ parser = argparse.ArgumentParser(description="My simple Python service")
 parser.add_argument("-l", "--log", help="file to write log to")
 parser.add_argument("-s", "--screen", help="see screen", action = 'store_true')
 parser.add_argument("-f", "--framerate", help="run line to find frame rate", action = 'store_true')
+parser.add_argument("-o", "--output", help="Toggles the data display off", action = 'store_true')
 
 args = parser.parse_args()
 ###############################################################################
@@ -50,7 +52,7 @@ args = parser.parse_args()
 #
 
 # Defaults
-LOG_LEVEL = logging.DEBUG # Could be e.g. "DEBUG" or "WARNING"
+LOG_LEVEL = logging.INFO # Could be e.g. "DEBUG" or "WARNING"
 LOG_FORMAT = '%(asctime)s %(name)s %(levelname)-8s %(message)s'
 
 # TODO: add code to set LOG_LEVEL from command line
@@ -103,6 +105,10 @@ except Exception as foo:
     logger.info("Huh, had trouble making the socket")
 logger.info ('done making socket connection')
 ##############################################################################
+if args.output:
+    bsHeight = imgHeight
+    logger.info("{},{}".format(bsHeight,imgHeight))
+##############################################################################
 #When can we get a compotent text editor
 cap = cv2.VideoCapture(0)
 cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, imgWidth)
@@ -119,20 +125,23 @@ try:
                 msg, addr = sock.recvfrom(512) # buffer size is 1024
                 tFromLast = time.time()
                 if args.log:
-                   logger.info(msg)
+                   logger.debug(msg)
             except socket.error, e:
+                #DEBUG logger.info("found socket error %s"%e)
                 err = e.args[0]
                 if err == errno.EAGAIN or err == errno.EWOULDBLOCK:
                     if time.time()-tFromLast > 10:
                         stringToPrint="Been a long time sense home called..."
+                        #DEBUG print stringToPrint
                         msg = None
                         if filename is not None:
                             logger.info(stringToPrint)
+                        
                         filename = None
                 else:
                     logger.info(e)
                 break
-        
+        #DEBUG print msg
         if msg is not None:
             data= json.loads(msg)
             stringToPrintTime = "{time:.1f}, {tim} sec,".format(tim= int(time.time()-start),time=data['timeinmatch'])
@@ -151,14 +160,14 @@ try:
         if filename != oldfile:
             if out is not None:
                 out.release()
-                logger.info ('file closing')
+                logger.info ('file %s is closing'%filename)
             out = None
             
         oldfile = filename
         
         #We don't have a file open but we want one
         if filename is not None and out is None:
-            out = cv2.VideoWriter(filename,fourcc,17,(bgWidth,bgHeight))
+            out = cv2.VideoWriter(filename,fourcc,20,(bgWidth,bgHeight))
             logger.info("file changed to {}".format(filename))
             start = time.time()
     
@@ -168,14 +177,17 @@ try:
             ret, frame = cap.read()
             
             if ret == True: 
-                img1 = np.zeros((bgHeight,bgWidth, 3), np.uint8)
-                img2 = frame
-                h,w,d = img2.shape
-                img1[y_offset:y_offset+h, x_offset:x_offset+w] = img2
-                cv2.putText(img1,stringToPrintTime,(3,bgHeight-14),2,.35,(255,255,255))
-                cv2.putText(img1,stringToPrint2,(3,bgHeight-2),2,.35,(255,255,255))
-                cv2.rectangle(img1,(bgWidth - 70, bgHeight-20),(bgWidth-10,bgHeight-80),(0,0,0))
-                cv2.line(img1,(bgWidth-40,bgHeight-50),pt2,(255,255,0))
+                if args.output:
+                    img1 = frame
+                else:
+                    img1 = np.zeros((bgHeight,bgWidth, 3), np.uint8)
+                    img2 = frame
+                    h,w,d = img2.shape
+                    img1[y_offset:y_offset+h, x_offset:x_offset+w] = img2
+                    cv2.putText(img1,stringToPrintTime,(3,bgHeight-14),2,.35,(255,255,255))
+                    cv2.putText(img1,stringToPrint2,(3,bgHeight-2),2,.35,(255,255,255))
+                    cv2.rectangle(img1,(bgWidth - 70, bgHeight-20),(bgWidth-10,bgHeight-80),(0,0,0))
+                    cv2.line(img1,(bgWidth-40,bgHeight-50),pt2,(255,255,0))
                 if args.screen:
                     cv2.imshow('res', img1)
                 out.write(img1)
