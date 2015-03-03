@@ -22,6 +22,11 @@ tFromLast = 0
 out = None
 
 
+imgWidth = 320
+imgHeight = 240
+bgHeight = imgHeight + 20
+bgWidth = imgWidth
+
 ###############################################################################
 # parse the command line
 #
@@ -32,7 +37,6 @@ parser.add_argument("-l", "--log", help="file to write log to")
 parser.add_argument("-s", "--screen", help="see screen", action = 'store_true')
 
 args = parser.parse_args()
-print args.screen
 ###############################################################################
 # set up the logging
 #
@@ -93,8 +97,8 @@ logger.info ('done making socket connection')
 ##############################################################################
 #When can we get a compotent text editor
 cap = cv2.VideoCapture(0)
-cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, 320)
-cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, 240)
+cap.set(cv2.cv.CV_CAP_PROP_FRAME_WIDTH, imgWidth)
+cap.set(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT, imgHeight)
 fourcc = cv2.cv.CV_FOURCC(*'XVID')
 ##############################################################################
 try:
@@ -123,16 +127,16 @@ try:
         
         if msg is not None:
             data= json.loads(msg)
-            stringToPrintTime = "{time:.1f} match, {tim} sec,".format(tim= int(time.time()-start),time=data['timeinmatch'])
+            stringToPrintTime = "{time:.1f}, {tim} sec,".format(tim= int(time.time()-start),time=data['timeinmatch'])
             stringToPrint2 ="team {team}, {volt:.1f} volts, {mode}".format(team=data['position'],volt=(data['voltage']), mode = data['robotmode'])
             try:
                 filename = data['filename']
             except KeyError:
                 filename = None
             try:
-                pt2 = (int(30*data['joystickx']+280),int(30*data['joysticky']+210))
+                pt2 = (int(30*data['joystickx']+(bgWidth-40)),int(30*data['joysticky']+(bgHeight-50)))
             except KeyError:
-                pt2 = (280,210)
+                pt2 = (bgWidth-40,bgHeight-50)
            
         #Changing files 
         #DEBUG logger.info("filename {}, oldfile {}, out {}".format(filename,oldfile,out))
@@ -146,7 +150,7 @@ try:
         
         #We don't have a file open but we want one
         if filename is not None and out is None:
-            out = cv2.VideoWriter(filename,fourcc,17,(320,260))
+            out = cv2.VideoWriter(filename,fourcc,17,(bgWidth,bgHeight))
             logger.info("file changed to {}".format(filename))
             start = time.time()
     
@@ -156,14 +160,14 @@ try:
             ret, frame = cap.read()
             
             if ret == True: 
-                img1 = np.zeros((260,320, 3), np.uint8)
+                img1 = np.zeros((bgHeight,bgWidth, 3), np.uint8)
                 img2 = frame
                 h,w,d = img2.shape
                 img1[y_offset:y_offset+h, x_offset:x_offset+w] = img2
-                cv2.putText(img1,stringToPrintTime,(3,246),2,.35,(255,255,255))
-                cv2.putText(img1,stringToPrint2,(3,258),2,.35,(255,255,255))
-                cv2.rectangle(img1,(250,240),(310,180),(0,0,0))
-                cv2.line(img1,(280,210),pt2,(255,255,0))
+                cv2.putText(img1,stringToPrintTime,(3,bgHeight-16),2,.35,(255,255,255))
+                cv2.putText(img1,stringToPrint2,(3,bgHeight-2),2,.35,(255,255,255))
+                cv2.rectangle(img1,(bgWidth - 70, bgHeight-20),(bgWidth-10,bgHeight-80),(0,0,0))
+                cv2.line(img1,(bgWidth-40,bgHeight-50),pt2,(255,255,0))
                 if args.screen:
                     cv2.imshow('res', img1)
                 out.write(img1)

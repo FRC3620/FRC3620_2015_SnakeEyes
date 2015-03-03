@@ -12,12 +12,12 @@ UDP_PORT = 3620
 
 filename = 'test.avi'
 robotmode = 'teleop'
-time = '10:42'
+time = t.time()
 
 joystickx = 0
 joysticky = 0
 position = 'Red 3'
-voltage = '12.42'
+voltage = 12.42
 
 sock = None
 
@@ -30,7 +30,7 @@ except Exception as foo:
 
 
 while True:
-    timeinmatch = str(int(t.time()-start))
+    timeinmatch =time
     data = json.dumps({'filename':filename,'robotmode':robotmode,'time':time,'timeinmatch':timeinmatch,'joystickx':joystickx,'joysticky':joysticky,'position':position,'voltage':voltage})
     if sock is not None:
         try:
