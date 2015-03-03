@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import numpy as np
 import cv2
 import time
@@ -9,6 +11,10 @@ import logging
 import sys
 import math
 
+##DEBUG VARIABLES##
+count = 0
+startFrame = time.time()
+###################
 start = time.time()
 UDP_IP = "0.0.0.0"
 UDP_PORT = 3620
@@ -21,11 +27,12 @@ filename = None
 tFromLast = 0
 out = None
 
-
+margin = 20
 imgWidth = 320
 imgHeight = 240
-bgHeight = imgHeight + 20
+bgHeight = imgHeight + margin
 bgWidth = imgWidth
+
 
 ###############################################################################
 # parse the command line
@@ -35,6 +42,7 @@ bgWidth = imgWidth
 parser = argparse.ArgumentParser(description="My simple Python service")
 parser.add_argument("-l", "--log", help="file to write log to")
 parser.add_argument("-s", "--screen", help="see screen", action = 'store_true')
+parser.add_argument("-f", "--framerate", help="run line to find frame rate", action = 'store_true')
 
 args = parser.parse_args()
 ###############################################################################
@@ -164,7 +172,7 @@ try:
                 img2 = frame
                 h,w,d = img2.shape
                 img1[y_offset:y_offset+h, x_offset:x_offset+w] = img2
-                cv2.putText(img1,stringToPrintTime,(3,bgHeight-16),2,.35,(255,255,255))
+                cv2.putText(img1,stringToPrintTime,(3,bgHeight-14),2,.35,(255,255,255))
                 cv2.putText(img1,stringToPrint2,(3,bgHeight-2),2,.35,(255,255,255))
                 cv2.rectangle(img1,(bgWidth - 70, bgHeight-20),(bgWidth-10,bgHeight-80),(0,0,0))
                 cv2.line(img1,(bgWidth-40,bgHeight-50),pt2,(255,255,0))
@@ -172,7 +180,15 @@ try:
                     cv2.imshow('res', img1)
                 out.write(img1)
         if cv2.waitKey(1)& 0xFF == ord('q'):
-           break
+            break
+        
+        if args.framerate:
+            count += 1
+            if time.time()-startFrame >= 10:
+                startFrame = time.time()
+                logger.info(count)
+                count = 0
+            logger.info(time.time()-startFrame)
 except KeyboardInterrupt:
     pass
 #cleanup
